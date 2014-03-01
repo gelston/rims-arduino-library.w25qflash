@@ -1,5 +1,5 @@
 #include "Arduino.h"
-#include "w25q.h"
+#include "w25qflash.h"
 #include "SPI.h"
 
 
@@ -16,8 +16,7 @@ _csPin(csPin)
 void W25QFlash::waitFree()
 {
 	_select();
-	do SPI.transfer(W25Q_SR_READ1);
-	while(SPI.transfer(W25Q_SR_READ1) & 0x01);
+	while(_getStatus() & W25Q_MASK_BSY);
 	_deselect();
 }
 
@@ -26,10 +25,10 @@ void W25QFlash::setWriteEnable(bool state)
 	_select();
 	SPI.transfer(state ? W25Q_WEN : W25Q_WDI);
 	_deselect();
-	delayMicroseconds(5);
+	delayMicroseconds(1);
 }
 
-void W25QFlash::erase()
+void W25QFlash::erase(unsigned long addr, byte command)
 {
 	waitFree();
 	setWriteEnable();
@@ -41,7 +40,7 @@ void W25QFlash::erase()
 }
 
 
-void W25QFlash::read()
+void W25QFlash::read(unsigned long addr, byte buffer[], unsigned long n)
 {
 	int i;
 	waitFree();
@@ -52,16 +51,13 @@ void W25QFlash::read()
 	_deselect();
 }
 
-void W25QFlash::write()
+void W25QFlash::write(unsigned long addr, byte buffer[], unsigned long n)
 {
 	int i;
 	waitFree();
 	setWriteEnable();
 	_select();
-	SPI.transfer(W25Q_SR_READ1);
-	Serial.println(SPI.transfer(0xFF),BIN);
-	_deselect();
-	_select();
+	
 	SPI.transfer(W25Q_PROG_PAGE);
 	SPI.transfer(0x00);SPI.transfer(0x00);SPI.transfer(0x00);
 	for(i=0;i<256;i++)
@@ -70,4 +66,10 @@ void W25QFlash::write()
 		
 	}
 	_deselect();
+}
+
+byte W25QFlash::_getStatus()
+{
+	SPI.transfer(W25Q_SR_READ1);
+	return SPI.transfer(0xFF);
 }

@@ -1,6 +1,8 @@
 #ifndef w25q_h
 #define w25q_h
 
+// === W25Q INSTRUCTION SET ===
+
 #define W25Q_WEN      0x06
 #define W25Q_WDI      0x04
 
@@ -18,6 +20,11 @@
 #define W25Q_SR_READ2  0x35
 #define W25Q_SR_WRITE  0x01 
 
+// === W25Q MASKS ===
+
+#define W25Q_MASK_BSY (0x01 << 0)
+#define W25Q_MASK_WEL (0x01 << 1)
+
 
 #include "Arduino.h"
 
@@ -30,15 +37,15 @@ public :
 	void waitFree();
 	void setWriteEnable(bool state = true);
 	
-	void read();
-	void write();
-	void erase();
+	void read(unsigned long addr, byte buffer[], unsigned long n);
+	void write(unsigned long addr, byte buffer[], unsigned long n);
+	void erase(unsigned long addr, byte command = W25Q_ERASE_SECTOR);
 	
 protected:
 	
 	void _select() {digitalWrite(_csPin,LOW);}
 	void _deselect() {digitalWrite(_csPin,HIGH);}
-	void _getStatus();
+	byte _getStatus();
 	
 private :
 	
