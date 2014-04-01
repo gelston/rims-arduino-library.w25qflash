@@ -38,7 +38,7 @@ public :
 	void setWriteEnable(bool state = true);
 	
 	void read(unsigned long addr, byte buffer[], unsigned long n);
-	void write(unsigned long addr, byte buffer[], unsigned long n);
+	void program(unsigned long addr, byte buffer[], unsigned long n);
 	void erase(unsigned long addr, byte command = W25Q_ERASE_SECTOR);
 	
 protected:
@@ -46,6 +46,7 @@ protected:
 	void _select() {digitalWrite(_csPin,LOW);}
 	void _deselect() {digitalWrite(_csPin,HIGH);}
 	byte _getStatus();
+	void _sendCmdAddr(byte cmd, unsigned long addr);
 	
 private :
 	

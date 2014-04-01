@@ -13,7 +13,7 @@ W25QFlash	KEYWORD1
 #######################################
 
 read	KEYWORD2
-write	KEYWORD2
+program	KEYWORD2
 erase	KEYWORD2
 
 #######################################
@@ -24,10 +24,9 @@ erase	KEYWORD2
 # Constants (LITERAL1)
 #######################################
 
-_W25Q80	ITERAL1
-_W25Q16	LITERAL1
-_W25Q32	LITERAL1
-_W25Q64	LITERAL1
-_W25Q128	LITERAL1
+W25Q_ERASE_SECTOR	LITERAL1
+W25Q_ERASE_BLOCK1	LITERAL1
+W25Q_ERASE_BLOCK2	LITERAL1
+W25Q_ERASE_CHIP	LITERAL1
 
 

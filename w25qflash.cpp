@@ -33,8 +33,7 @@ void W25QFlash::erase(unsigned long addr, byte command)
 	waitFree();
 	setWriteEnable();
 	_select();
-	SPI.transfer(W25Q_ERASE_SECTOR);
-	SPI.transfer(0x00);SPI.transfer(0x00);SPI.transfer(0x00);
+	_sendCmdAddr(command,addr);
 	_deselect();
 	
 }
@@ -42,28 +41,32 @@ void W25QFlash::erase(unsigned long addr, byte command)
 
 void W25QFlash::read(unsigned long addr, byte buffer[], unsigned long n)
 {
-	int i;
+	unsigned long i;
 	waitFree();
 	_select();
-	SPI.transfer(W25Q_READ);
-	SPI.transfer(0x00);SPI.transfer(0x00);SPI.transfer(0x00);
-	for(i=0;i<256;i++) Serial.println(SPI.transfer(0xFF));
+	_sendCmdAddr(W25Q_READ,addr);
+	for(i=0;i<n;i++) buffer[i] = SPI.transfer(0xFF);
 	_deselect();
 }
 
-void W25QFlash::write(unsigned long addr, byte buffer[], unsigned long n)
+void W25QFlash::program(unsigned long addr, byte buffer[], unsigned long n)
 {
-	int i;
+	unsigned long i;
 	waitFree();
 	setWriteEnable();
 	_select();
-	
-	SPI.transfer(W25Q_PROG_PAGE);
-	SPI.transfer(0x00);SPI.transfer(0x00);SPI.transfer(0x00);
-	for(i=0;i<256;i++)
+	_sendCmdAddr(W25Q_PROG_PAGE,addr);
+	for(i=0;i<n;i++)
 	{
-		SPI.transfer((byte)i);
-		
+		SPI.transfer(buffer[i]);
+		if(not((i+1) & 0xFF))
+		{
+		_deselect();
+		waitFree();
+		setWriteEnable();
+		_select();
+		_sendCmdAddr(W25Q_PROG_PAGE,addr+i+1);
+		}
 	}
 	_deselect();
 }
@@ -72,4 +75,12 @@ byte W25QFlash::_getStatus()
 {
 	SPI.transfer(W25Q_SR_READ1);
 	return SPI.transfer(0xFF);
+}
+
+void W25QFlash::_sendCmdAddr(byte cmd, unsigned long addr)
+{
+	SPI.transfer(cmd);
+	SPI.transfer((addr>>16) & 0xFF);
+	SPI.transfer((addr>> 8) & 0xFF);
+	SPI.transfer((addr)     & 0xFF);
 }
